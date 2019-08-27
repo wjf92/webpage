@@ -1,0 +1,282 @@
+<style lang="less">
+  @import '../../styles/common.less';
+  @import '../Order/components/table.less';
+
+  .tree {
+    word-wrap: break-word;
+    word-break: break-all;
+    overflow-y: scroll;
+    overflow-x: scroll;
+    min-height: 600px;
+  }
+</style>
+
+<template>
+  <div>
+    <Row>
+      <Col span="6">
+        <Card>
+          <p slot="title">
+            <Icon type="ios-redo"></Icon>
+            选择数据库
+          </p>
+          <div>
+            <Form :label-width="80">
+              <Form-item label="数据库连接:">
+                <Select v-model="formItem_dic.namedata">
+                  <Option v-for="i in TableList" :value="i" :key="i">{{ i }}</Option>
+                </Select>
+              </Form-item>
+              <Form-item>
+                <Button type="success" icon="ios-redo" @click.native="setdbselect()">连接数据库</Button>
+                <Button type="primary" icon="ios-cloud-download" @click.native="exportdata()">导出csv
+                </Button>
+              </Form-item>
+              <Form-item label="搜索数据表:">
+                <Select v-model="formItem_dic.table" @on-change="get_tab_meta(formItem_dic.table)">
+                  <Option v-for="i in db_table_list" :value="i" :key="i">{{ i }}</Option>
+                </Select>
+              </Form-item>
+              <Form-item label="操作:">
+                <Button type="error" icon="trash-a" @click.native="ClearForm()">清除</Button>
+                <Button type="info" icon="paintbucket" @click.native="beautify()">美化</Button>
+                <Button type="success" icon="ios-redo" @click.native="Search_sql()">查询</Button>
+              </Form-item>
+            </Form>
+          </div>
+        </Card>
+      </Col>
+      <Col span="18" class="padding-left-10">
+        <Card>
+          <p slot="title">
+            <Icon type="ios-crop-strong"></Icon>
+            填写sql语句 &nbsp;&nbsp;&nbsp;
+            <font color="red">当前选择的库: {{put_info.base}}</font>
+          </p>
+          <a slot="extra">
+            <Button type="success" @click.native="setdbselect()">添加收藏</Button>
+            <Button type="success" @click.native="setdbselect()">打开收藏</Button>
+            <Button type="primary" @click.native="setdbselect()">新增页签</Button>
+          </a>
+          <editor v-model="formItem.textarea"></editor>
+        </Card>
+      </Col>
+    </Row>
+    <Row>
+      <Card>
+          <br>
+          <p slot="title">
+            <Icon type="ios-crop-strong"></Icon>
+            查询结果:
+          </p>
+        <Table height="200" stripe :columns="columnsName" :data="Testresults" highlight-row ref="table" v-show="! dic_data_show"></Table>
+        <i-input type="textarea" v-model="dic_data" v-show="dic_data_show"  autosize></i-input>
+        <!--<editor v-model="dic_data" v-show="dic_data_show" disabled ></editor>-->
+        <br>
+        <!-- <Page :total="total" show-total @on-change="splice_arr" ref="totol"></Page> -->
+      </Card>
+    </Row>
+  </div>
+</template>
+<script>
+  import flow from './work_flow'
+  import ICol from '../../../node_modules/iview/src/components/grid/col.vue'
+  import axios from 'axios'
+  import util from '../../libs/util'
+  import Csv from '../../../node_modules/iview/src/utils/csv'
+  import ExportCsv from '../../../node_modules/iview/src/components/table/export-csv'
+  import user_collect from './user_collect'
+
+  const exportcsv = function exportCsv (params) {
+    if (params.filename) {
+      if (params.filename.indexOf('.csv') === -1) {
+        params.filename += '.csv'
+      }
+    } else {
+      params.filename = 'table.csv'
+    }
+
+    let columns = []
+    let datas = []
+    if (params.columns && params.data) {
+      columns = params.columns
+      datas = params.data
+    } else {
+      columns = this.columns
+      if (!('original' in params)) params.original = true
+      datas = params.original ? this.data : this.rebuildData
+    }
+
+    let noHeader = false
+    if ('noHeader' in params) noHeader = params.noHeader
+    const data = Csv(columns, datas, params, noHeader)
+    if (params.callback) params.callback(data)
+    else ExportCsv.download(params.filename, data)
+  }
+  export default {
+    components: {
+      ICol,
+      flow,
+      editor: require('../../libs/editor')
+    },
+    name: 'SearchSQL',
+    data () {
+      return {
+        dic_data_show: false,
+        dic_data: 'dic_data',
+        data1: [],
+        validate_gen: true,
+        formItem_dic: {
+          info: [],
+          data: [],
+          select: '',
+          namedata: '',
+          table: ''
+        },
+        db_table_list: [],
+        TableList: [],
+        formItem: {
+          textarea: ''
+        },
+        columnsName: [],
+        Testresults: [],
+        ruleValidate: {
+          basename: [{
+            required: true,
+            message: '数据库名不得为空',
+            trigger: 'change'
+          }]
+        },
+        id: null,
+        total: 0,
+        allsearchdata: [],
+        put_info: {
+          base: '',
+          tablename: ''
+        },
+        export_data: false
+      }
+    },
+    methods: {
+      // 设置当前选择的DB
+      setdbselect () {
+        this.put_info.base = this.formItem_dic.namedata;
+        axios.put(`${util.url}/query_worklf`, {'mode': 'tablist', 'dbname': this.put_info.base})
+          .then(res => {
+            this.db_table_list = res.data
+          })
+          .catch(error => {
+            util.err_notice(error)
+          })
+      },
+      // 初始化加载数据库表名列表
+      InitializationTableInfo (val) {
+        if (this.formItem.namedata.length === 0) {
+          return
+        }
+        axios.post(`${util.url}/sqldic/`, {
+          'name': val
+        })
+          .then(res => {
+            this.formItem.info = res.data.map(item => item.BaseName)
+          })
+          .catch(error => {
+            util.err_notice(error)
+          })
+      },
+      beautify () {
+        axios.put(`${util.url}/sqlsyntax/beautify`, {
+          'data': this.formItem.textarea
+        })
+          .then(res => {
+            this.formItem.textarea = res.data
+          })
+          .catch(error => {
+            util.err_notice(error)
+          })
+      },
+      splice_arr (page) {
+        this.Testresults = this.allsearchdata.slice(page * 10 - 10, page * 10)
+      },
+      ClearForm () {
+        this.formItem.textarea = ''
+        this.Testresults = []
+        this.columnsName = []
+        this.$refs.totol.currentPage = 1
+        this.total = 0
+      },
+      Search_sql () {
+        let address = {
+          'basename': this.put_info.base
+        }
+        axios.post(`${util.url}/search`, {
+          'sql': this.formItem.textarea,
+          'address': JSON.stringify(address)
+        })
+          .then(res => {
+            if (res.data['error']) {
+              util.err_notice(res.data['error'])
+            } else {
+              this.dic_data_show = false;
+              this.columnsName = res.data['title']
+              this.allsearchdata = res.data['data']
+              this.Testresults = this.allsearchdata.slice(0, 100)
+              this.total = res.data['len']
+            }
+          })
+          .catch(error => {
+            util.err_notice(error)
+          })
+      },
+      exportdata () {
+        exportcsv({
+          filename: 'Yearning_Data',
+          original: false,
+          data: this.allsearchdata,
+          columns: this.columnsName
+        })
+      },
+      get_tab_meta (v1) {
+        axios.put(`${util.url}/query_worklf`, {
+          'mode': 'tabmeta',
+          'dbname': this.put_info.base,
+          'tabname': v1
+        })
+          .then(res => {
+            if (res.data['error']) {
+              util.err_notice(res.data['error'])
+            } else {
+              this.dic_data_show = true;
+              this.dic_data = res.data
+            }
+          })
+          .catch(error => {
+            util.err_notice(error)
+          })
+      }
+    },
+    mounted () {
+      axios.put(`${util.url}/query_worklf`, {'mode': 'status'})
+        .then(res => {
+          if (res.data !== 1) {
+            this.$router.push({
+              name: 'serach-sql'
+            })
+          } else {
+            axios.put(`${util.url}/query_worklf`, {'mode': 'dblist'})
+              .then(res => {
+                this.TableList = res.data
+              })
+              .catch(error => {
+                util.err_notice(error)
+              })
+            // axios.put(`${util.url}/query_worklf`, {'mode': 'info'})
+            //   .then(res => {
+            //     this.data1 = JSON.parse(res.data['info'])
+            //     res.data['status'] === 1 ? this.export_data = true : this.export_data = false
+            //   })
+          }
+        })
+    }
+  }
+</script>
