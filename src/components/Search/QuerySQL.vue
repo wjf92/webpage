@@ -305,10 +305,10 @@
           'mode': 'getcollect'
         })
           .then(res => {
-            middata = res.data['title']
-            middata.push(coloperation)
-            this.my_coll_cols = middata
-            this.my_coll_data = res.data['data']
+            middata = res.data['title'];
+            middata.push(coloperation);
+            this.my_coll_cols = middata;
+            this.my_coll_data = res.data['data'];
             this.usercollectshow = true
           })
           .catch(error => {
@@ -316,8 +316,8 @@
           })
       },
       usecollect (v1) {
-        this.setdbselect(v1.connect_name)
-        this.formItem.textarea = v1.sql_text
+        this.setdbselect(v1.connect_name);
+        this.formItem.textarea = v1.sql_text;
         this.usercollectshow = false
       },
       // 设置当前选择的DB
@@ -362,18 +362,20 @@
         this.Testresults = this.allsearchdata.slice(page * 10 - 10, page * 10)
       },
       ClearForm () {
-        this.formItem.textarea = ''
-        this.Testresults = []
-        this.columnsName = []
-        this.$refs.totol.currentPage = 1
-        this.sql_rows = 0
+        this.formItem.textarea = '';
+        this.Testresults = [];
+        this.columnsName = [];
+        this.$refs.totol.currentPage = 1;
+        this.sql_rows = 0;
         this.elapse_time = 0.00
       },
       Search_sql () {
-        this.dic_data_show = false
-        this.sql_rows = 0
-        this.elapse_time = 0.00
-        this.loadshow = true
+        this.dic_data_show = false;
+        this.sql_rows = 0;
+        this.elapse_time = 0.00;
+        this.loadshow = true;
+        this.Testresults = [];
+        this.columnsName = [];
         axios.post(`${util.url}/search`, {
           'sql': this.formItem.textarea,
           'address': this.put_info.base,
