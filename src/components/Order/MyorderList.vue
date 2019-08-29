@@ -23,7 +23,19 @@
                   @click.native="PutData()">重新提交
           </Button>
           <!--<Button type="text" v-if="this.$route.query.status === 2" @click.native="delorder()">工单撤销</Button>-->
-          <Button type="text" @click.native="$router.go(-1)">返回</Button>
+        </p>
+        <p slot="extra">
+          <i-button type="primary" @click.native="$router.go(-1)" >
+            <Icon type="chevron-left"></Icon>
+            返回
+          </i-button>
+          <i-button type="primary" @click="showdetail()">
+            申请内容
+          </i-button>
+          <i-button type="primary">
+            催办
+            <Icon type="chevron-right"></Icon>
+          </i-button>
         </p>
         <Row>
           <Steps :current="workflow_record.length">
@@ -91,6 +103,21 @@
                       <span >处理中……</span>
                     </i-col>
                   </Row>
+                  <Row>
+                    <Radio-group>
+                      <Radio value="同意"></Radio>
+                      <Radio value="驳回"></Radio>
+                      <Radio value="转交">
+                        <i-select  filterable>
+                          <i-option >{{  }}</i-option>
+                        </i-select>
+                      </Radio>
+                    </Radio-group>
+                  </Row>
+                  <Row>
+                    <span>处理意见:</span>
+                    <i-input type="textarea" :rows="4" placeholder="请输入..."></i-input>
+                  </Row>
                 </Card>
               </i-col>
             </Step>
@@ -101,6 +128,44 @@
     <BackTop :height="100" :bottom="200">
       <div class="top">返回顶端</div>
     </BackTop>
+
+    <!--工单详细内容-->
+    <Modal v-model="modaldetail" width="900">
+      <p slot="header" style="color:#f60;font-size: 16px">
+        <Icon type="information-circled"></Icon>
+        <span>SQL工单详细信息</span>
+      </p>
+      <Form label-position="right">
+        <FormItem label="连接名称:">
+          <span>{{ formdetail.bundle_id }}</span>
+        </FormItem>
+        <FormItem label="SQL语句:">
+          <br>
+          <div class="tree">
+            <p v-for="i in ordersql">{{ i }}</p>
+          </div>
+        </FormItem>
+      </Form>
+      <template>
+        <p class="pa">SQL检查结果:</p>
+        <Table :columns="columnsName" :data="dataId" stripe border width="860" height="200"></Table>
+      </template>
+      <div slot="footer">
+        <Button type="warning" @click.native="test_button()">检测sql</Button>
+        <Button @click="modaldetail = false">取消</Button>
+        <!--<Button type="error" @click="out_button()">驳回</Button>-->
+        <!--<template v-if="switch_show">-->
+          <!--<template>-->
+            <!--<Button type="success" @click="agreed_button()" :disabled="summit" v-if="auth === 'admin'">同意</Button>-->
+            <!--&lt;!&ndash;<Button type="success" @click="put_button()" v-else-if="auth === 'perform'">执行</Button>&ndash;&gt;-->
+          <!--</template>-->
+          <!--<template v-else>-->
+            <!--<Button type="error" @click="out_button()" :disabled="summit">驳回</Button>-->
+            <!--&lt;!&ndash;<Button type="success" @click="put_button()" :disabled="summit">执行</Button>&ndash;&gt;-->
+          <!--</template>-->
+        <!--</template>-->
+      </div>
+    </Modal>
 
     <Modal v-model="reloadsql" :ok-text="'提交工单'" width="800" @on-ok="_Putorder">
       <Row>
@@ -154,9 +219,46 @@
     name: 'myorder-list',
     data () {
       return {
+        ordersql: [],
+        dataId: [],
+        formdetail: {},
+        modaldetail: false,
         workflow_config: [],
         workflow_record: [],
         workflow_next: [],
+        columnsName: [
+          {
+            title: 'ID',
+            key: 'ID',
+            width: 60,
+            fixed: 'left'
+          },
+          {
+            title: '阶段状态',
+            key: 'stagestatus',
+            width: 150
+          },
+          {
+            title: '当前检查的sql',
+            key: 'sql',
+            width: 500
+          },
+          {
+            title: '错误信息',
+            key: 'errormessage',
+            width: 300
+          },
+          {
+            title: '影响行数',
+            key: 'affected_rows',
+            width: 90
+          },
+          {
+            title: 'SQLSHA1',
+            key: 'SQLSHA1',
+            width: 200
+          }
+        ],
         tabcolumns: [
           {
             title: 'sql语句',
@@ -197,40 +299,41 @@
         },
         ddlsql: [],
         sqltype: null,
-        dmlorddl: null,
-        my_wf_records: [
-          {
-            create_time: '2019-08-27 19:38:39',
-            step_name: '数据修改申请',
-            handler_user: 'yinian',
-            handler_result: '发起dml申请',
-            opinion: '测试使用'
-          },
-          {
-            create_time: '2019-08-27 19:39:24',
-            step_name: '主管审核',
-            handler_user: 'yinian',
-            handler_result: '同意',
-            opinion: '注意验证'
-          },
-          {
-            create_time: '2019-08-27 19:39:53',
-            step_name: 'DBA审核',
-            handler_user: 'yinian',
-            handler_result: '同意',
-            opinion: 'sql确认'
-          },
-          {
-            create_time: '',
-            step_name: '自助执行',
-            handler_user: '',
-            handler_result: '',
-            opinion: ''
-          }
-        ]
+        dmlorddl: null
       }
     },
     methods: {
+      // 测试sql按钮
+      test_button () {
+        this.osclist = []
+        axios.put(`${util.url}/audit_sql`, {
+          'type': 'test',
+          'workid': this.$route.query.workid
+        })
+          .then(res => {
+            if (res.data.status === 200) {
+              let osclist
+              this.dataId = res.data.result
+              osclist = this.dataId.filter(vl => {
+                if (vl.SQLSHA1 !== '') {
+                  return vl
+                }
+              })
+              this.osclist = osclist
+              this.summit = false
+              sessionStorage.setItem('osc', JSON.stringify(osclist))
+            } else {
+              util.err_notice(res.data.status)
+            }
+          })
+          .catch(error => {
+            util.err_notice(error)
+          })
+      },
+      // 显示详细信息模态框
+      showdetail: function () {
+        this.modaldetail = true
+      },
       _RollBack () {
         if (this.TableDataNew[1].state.length === 40) {
           this.openswitch = true
@@ -311,13 +414,13 @@
       }
     },
     mounted () {
-      console.log(11111)
       axios.get(`${util.url}/detail?workid=${this.$route.query.workid}`)
         .then(res => {
           this.workflow_config = res.data.workflow_info;
           this.workflow_record = res.data.workflow_record;
           this.workflow_next = res.data.workflow_next;
-          console.log(this.workflow_next)
+          this.formdetail = res.data.order_info;
+          this.ordersql = this.formdetail.sql.split(';')
         })
         .catch(error => {
           util.err_notice(error)

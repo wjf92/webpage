@@ -165,10 +165,7 @@
                       this.$router.push({
                         name: 'orderlist',
                         query: {
-                          workid: params.row.work_id,
-                          id: params.row.id,
-                          status: params.row.status,
-                          type: params.row.type
+                          workid: params.row.work_id
                         }
                       })
                     }

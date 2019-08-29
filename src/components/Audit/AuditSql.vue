@@ -60,13 +60,6 @@
         </p>
         <Row>
           <Col span="24">
-            <Poptip
-              confirm
-              title="您确认删除这些工单信息吗?"
-              @on-ok="delrecordData"
-            >
-              <Button type="text" style="margin-left: -1%">删除记录</Button>
-            </Poptip>
             <Button type="text" style="margin-left: -1%" @click.native="mou_data()">刷新</Button>
             <Table border :columns="columns6" :data="tmp" stripe ref="selection"
                    @on-selection-change="delrecordList"></Table>
@@ -76,59 +69,6 @@
         </Row>
       </Card>
     </Row>
-
-    <Modal v-model="modal2" width="900">
-      <p slot="header" style="color:#f60;font-size: 16px">
-        <Icon type="information-circled"></Icon>
-        <span>SQL工单详细信息</span>
-      </p>
-      <Form label-position="right">
-        <FormItem label="工单编号:">
-          <span>{{ formitem.work_id }}</span>
-        </FormItem>
-        <FormItem label="机房:">
-          <span>{{ formitem.computer_room }}</span>
-        </FormItem>
-        <FormItem label="连接名称:">
-          <span>{{ formitem.connection_name }}</span>
-        </FormItem>
-        <FormItem label="工单说明:">
-          <span>{{ formitem.text }}</span>
-        </FormItem>
-        <FormItem label="SQL语句:">
-          <br>
-          <div class="tree">
-            <p v-for="i in sql">{{ i }}</p>
-          </div>
-        </FormItem>
-        <FormItem label="选择执行人:" v-if="multi && auth === 'admin'">
-          <Select v-model="multi_name" style="width: 20%">
-            <Option v-for="i in multi_list" :value="i.username" :key="i.username">{{i.username}}</Option>
-          </Select>
-        </FormItem>
-      </Form>
-      <template v-if="auth === 'admin'">
-        <p class="pa">SQL检查结果:</p>
-        <Table :columns="columnsName" :data="dataId" stripe border width="860" height="200"></Table>
-      </template>
-
-      <div slot="footer">
-        <Button type="warning" @click.native="test_button()" v-if="auth === 'admin'">检测sql</Button>
-        <Button @click="modal2 = false">取消</Button>
-        <Button type="error" @click="out_button()">驳回</Button>
-        <template v-if="switch_show">
-          <template v-if="multi">
-
-            <Button type="success" @click="agreed_button()" :disabled="summit" v-if="auth === 'admin'">同意</Button>
-            <Button type="success" @click="put_button()" v-else-if="auth === 'perform'">执行</Button>
-          </template>
-          <template v-else>
-            <Button type="error" @click="out_button()" :disabled="summit">驳回</Button>
-            <Button type="success" @click="put_button()" :disabled="summit">执行</Button>
-          </template>
-        </template>
-      </div>
-    </Modal>
 
     <Modal v-model="reject.reje" @on-ok="rejecttext">
       <p slot="header" style="color:#f60;font-size: 16px">
@@ -302,8 +242,12 @@
                       },
                       on: {
                         click: () => {
-                          this.summit = true
-                          this.edit_tab(params.index)
+                          this.$router.push({
+                            name: 'orderlist',
+                            query: {
+                              workid: params.row.work_id
+                            }
+                          })
                         }
                       }
                     }, '查看'),
@@ -329,8 +273,10 @@
                       },
                       on: {
                         click: () => {
-                          this.summit = true
-                          this.edit_tab(params.index)
+                          this.$router.push({
+                            name: 'orderlist',
+                            query: {workid: params.row.work_id}
+                          })
                         }
                       }
                     }, '查看')
@@ -359,7 +305,7 @@
                       click: () => {
                         this.$router.push({
                           name: 'orderlist',
-                          query: {workid: params.row.work_id, id: params.row.id, status: 1, type: params.row.type}
+                          query: {workid: params.row.work_id}
                         })
                       }
                     }
@@ -444,8 +390,7 @@
         this.$router.push({
           name: 'orderlist',
           query: {
-            workid: '',
-            id: ''
+            workid: ''
           }
         })
       },
