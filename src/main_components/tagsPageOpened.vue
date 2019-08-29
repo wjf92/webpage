@@ -57,7 +57,7 @@
             lastPagePath = this.$store.state.pageOpenedList[1].path
           } else {
             lastPageName = this.$store.state.pageOpenedList[0].name
-            lastPagePath = this.$store.state.pageOpenedList[1].path
+            lastPagePath = this.$store.state.pageOpenedList[0].path
           }
           if (lastPageName.substr(0, 10) === 'serach-sql') {
             this.$router.push({

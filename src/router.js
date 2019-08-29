@@ -94,6 +94,24 @@ export const appRouter = [
     component: Index,
     children: [
       {
+        path: 'my-order',
+        name: 'my-order',
+        title: '我的工单',
+        'icon': 'person',
+        component: resolve => {
+          require(['./components/Order/MyOrder.vue'], resolve)
+        }
+      },
+      {
+        path: 'audit-order',
+        name: 'audit-audit',
+        title: '待处理工单',
+        'icon': 'edit',
+        component: resolve => {
+          require(['./components/Audit/AuditSql.vue'], resolve)
+        }
+      },
+      {
         path: 'ddledit',
         name: 'ddledit',
         title: 'DDL',
@@ -166,15 +184,6 @@ export const appRouter = [
     component: Index,
     access: 0,
     children: [
-      {
-        path: 'audit-order',
-        name: 'audit-audit',
-        title: '工单',
-        'icon': 'edit',
-        component: resolve => {
-          require(['./components/Audit/AuditSql.vue'], resolve)
-        }
-      },
       {
         path: 'audit-permissions',
         name: 'audit-permissions',
@@ -338,25 +347,25 @@ export const queryready = {
   ]
 }
 
-export const myorder = {
-  path: '/',
-  icon: 'home',
-  name: 'main',
-  title: '首页',
-  component: Index,
-  redirect: '/home',
-  children: [
-    {
-      path: 'myorder',
-      name: 'myorder',
-      title: '我的工单',
-      'icon': 'person',
-      component: resolve => {
-        require(['./components/Order/MyOrder.vue'], resolve)
-      }
-    }
-  ]
-}
+// export const myorder = {
+//   path: '/',
+//   icon: 'home',
+//   name: 'main',
+//   title: '首页',
+//   component: Index,
+//   redirect: '/home',
+//   children: [
+//     {
+//       path: 'myorder',
+//       name: 'myorder',
+//       title: '我的工单',
+//       'icon': 'person',
+//       component: resolve => {
+//         require(['./components/Order/MyOrder.vue'], resolve)
+//       }
+//     }
+//   ]
+// }
 export const MainRoute = [
   loginRouter,
   locking,
@@ -365,7 +374,6 @@ export const MainRoute = [
   queryList,
   queryready,
   querypage,
-  myorder,
   page404,
   page401,
   page500

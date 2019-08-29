@@ -24,10 +24,10 @@
       <Icon type="home" :size="iconSize"></Icon>
       <span class="layout-text">首页</span>
     </MenuItem>
-    <MenuItem name="myorder">
-      <Icon type="person" :size="iconSize"></Icon>
-      <span class="layout-text">我的工单</span>
-    </MenuItem>
+    <!--<MenuItem name="myorder">-->
+      <!--<Icon type="person" :size="iconSize"></Icon>-->
+      <!--<span class="layout-text">我的工单</span>-->
+    <!--</MenuItem>-->
     <template v-for="item in menuList">
       <Submenu v-if="item.children.length>=1 && item.name !== 'main'" :name="item.name" :key="item.path">
         <template slot="title">
@@ -64,6 +64,7 @@
     data () {
       return {
         filtermenulist: {
+          'my-order': '1',
           'ddledit': '',
           'dmledit': '',
           'indexedit': '',
@@ -107,14 +108,15 @@
       }
     },
     created () {
+      console.log(this.menuList)
       axios.get(`${util.url}/homedata/menu`)
         .then(res => {
-          let c = JSON.parse(res.data)
-          this.filtermenulist.ddledit = c.ddl
-          this.filtermenulist.indexedit = c.ddl
-          this.filtermenulist.dmledit = c.dml
-          this.filtermenulist['view-dml'] = c.dic
-          this.filtermenulist['management-user'] = c.user
+          let c = JSON.parse(res.data);
+          // this.filtermenulist.ddledit = c.ddl;
+          // this.filtermenulist.indexedit = c.ddl;
+          // this.filtermenulist.dmledit = c.dml;
+          this.filtermenulist['view-dml'] = c.dic;
+          this.filtermenulist['management-user'] = c.user;
           this.filtermenulist['management-database'] = c.base
         })
     }

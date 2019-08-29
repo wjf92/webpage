@@ -6,9 +6,19 @@
   <div>
     <Row>
       <Card>
+          <i-button type="primary" shape="circle" style="width: 49%; height: 80px" @click="newdml()">
+            <span style="font-weight:bold;font-size: 35px">新建DML工单</span>
+          </i-button>
+          <i-button type="success" shape="circle" style="width: 49%; height: 80px" @click="newddl()">
+            <span style="font-weight:bold;font-size: 35px">新建DDL工单</span>
+          </i-button>
+      </Card>
+    </Row>
+    <Row>
+      <Card>
         <p slot="title">
           <Icon type="person"></Icon>
-          我的工单
+          我发起的工单
         </p>
         <Row>
           <Col span="24">
@@ -32,27 +42,43 @@
       return {
         columns: [
           {
+            title: '工单类型',
+            key: 'type',
+            render: (h, params) => {
+              const row = params.row
+              let color = ''
+              let text = ''
+              if (row.type === 1) {
+                color = 'blue'
+                text = 'DML'
+              } else if (row.type === 0) {
+                color = 'green'
+                text = 'DDL'
+              }
+              return h('Tag', {
+                props: {
+                  color: color
+                }
+              }, text)
+            },
+            sortable: true,
+            width: 120
+          },
+          {
             title: '工单编号:',
             key: 'work_id',
-            sortable: true
+            sortable: true,
+            width: 200
           },
           {
             title: '工单说明',
             key: 'text'
           },
           {
-            title: '是否备份',
-            key: 'backup'
-          },
-          {
             title: '提交时间:',
             key: 'date',
-            sortable: true
-          },
-          {
-            title: '提交人',
-            key: 'username',
-            sortable: true
+            sortable: true,
+            width: 200
           },
           {
             title: '状态',
@@ -86,6 +112,7 @@
               }, text)
             },
             sortable: true,
+            width: 150,
             filters: [{
               label: '已执行',
               value: 1
@@ -148,7 +175,8 @@
                   }
                 }, '详细信息')
               ])
-            }
+            },
+            width: 150
           }
         ],
         page_number: 1,
@@ -167,6 +195,12 @@
           .catch(error => {
             util.err_notice(error)
           })
+      },
+      newddl () {
+        util.openPage(this, 'ddledit')
+      },
+      newdml () {
+        util.openPage(this, 'dmledit')
       }
     },
     mounted () {

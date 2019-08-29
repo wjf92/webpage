@@ -71,6 +71,7 @@
         currentPageName: this.$route.name,
         openedSubmenuArr: this.$store.state.openedSubmenuArr,
         filtermenulist: {
+          'my-order': '1',
           'ddledit': '',
           'dmledit': '',
           'indexedit': '',
@@ -108,9 +109,9 @@
       axios.get(`${util.url}/homedata/menu`)
         .then(res => {
           let c = JSON.parse(res.data)
-          this.filtermenulist.ddledit = c.ddl
-          this.filtermenulist.indexedit = c.ddl
-          this.filtermenulist.dmledit = c.dml
+          // this.filtermenulist.ddledit = c.ddl
+          // this.filtermenulist.indexedit = c.ddl
+          // this.filtermenulist.dmledit = c.dml
           this.filtermenulist['view-dml'] = c.dic
           this.filtermenulist['management-user'] = c.user
           this.filtermenulist['management-database'] = c.base

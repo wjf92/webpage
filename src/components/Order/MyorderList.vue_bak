@@ -22,79 +22,14 @@
           <Button type="text" v-else-if="this.$route.query.status === 0 && this.$route.query.type === 1"
                   @click.native="PutData()">重新提交
           </Button>
-          <!--<Button type="text" v-if="this.$route.query.status === 2" @click.native="delorder()">工单撤销</Button>-->
+          <Button type="text" v-if="this.$route.query.status === 2" @click.native="delorder()">工单撤销</Button>
           <Button type="text" @click.native="$router.go(-1)">返回</Button>
         </p>
         <Row>
-          <Steps :current="workflow_record.length">
-              <Step :title="wf.step_name" v-for="(wf, index) in workflow_config" :key="index"></Step>
-          </Steps>
-        </Row>
-        <Row>
-          <br>
-          <Steps  direction="vertical" :current="workflow_record.length">
-            <Step icon="person-add" v-for="(step, index) in workflow_record" :key="index">
-              <i-col span="24">
-                <Card>
-                  <Row style="background-color: rgba(236,255,255,0.63); height: 35px;">
-                    <i-col span="8">
-                      <Icon type="pie-graph"></Icon>
-                      <span style="font-weight:bold">任务名称：{{step.step_name}}</span>
-                    </i-col>
-                    <i-col  span="8">
-                      <Icon type="person"></Icon>
-                      <span style="font-weight:bold">处理人：{{step.handler_user}}</span>
-                    </i-col>
-                    <i-col>
-                      <Icon type="calendar"></Icon>
-                      <span style="font-weight:bold">处理时间： {{step.create_time}}</span>
-                    </i-col>
-                  </Row>
-                  <br>
-                  <Row>
-                    <i-col span="2">
-                      <span style="font-weight:bold">处理结果：</span>
-                    </i-col>
-                    <i-col span="18">
-                      <span>{{step.handler_result}}</span>
-                    </i-col>
-                  </Row>
-                  <Row>
-                    <i-col span="2">
-                      <span style="font-weight:bold">审批意见：</span>
-                    </i-col>
-                    <i-col span="16">
-                      <span>{{step.opinion}}</span>
-                    </i-col>
-                  </Row>
-                </Card>
-              </i-col>
-            </Step>
-            <!--多展示一列下一步审批信息-->
-            <Step icon="clock">
-              <i-col span="24">
-                <Card>
-                  <Row style="background-color: rgba(236,255,255,0.63); height: 35px;">
-                    <i-col span="8">
-                      <Icon type="pie-graph"></Icon>
-                      <span style="font-weight:bold">任务名称：{{workflow_next.step_name}}</span>
-                    </i-col>
-                    <i-col  span="8">
-                      <Icon type="person"></Icon>
-                      <span style="font-weight:bold">处理人：{{workflow_next.handler_user}}</span>
-                    </i-col>
-                  </Row>
-                  <br>
-                  <Row>
-                    <i-col span="10">
-                      <!--<Icon type="clock" size="50"></Icon>-->
-                      <span >处理中……</span>
-                    </i-col>
-                  </Row>
-                </Card>
-              </i-col>
-            </Step>
-          </Steps>
+          <Col span="24">
+            <Table border :columns="tabcolumns" :data="TableDataNew" class="tabletop" style="background: #5cadff"
+                   size="large"></Table>
+          </Col>
         </Row>
       </Card>
     </Row>
@@ -154,9 +89,6 @@
     name: 'myorder-list',
     data () {
       return {
-        workflow_config: [],
-        workflow_record: [],
-        workflow_next: [],
         tabcolumns: [
           {
             title: 'sql语句',
@@ -197,37 +129,7 @@
         },
         ddlsql: [],
         sqltype: null,
-        dmlorddl: null,
-        my_wf_records: [
-          {
-            create_time: '2019-08-27 19:38:39',
-            step_name: '数据修改申请',
-            handler_user: 'yinian',
-            handler_result: '发起dml申请',
-            opinion: '测试使用'
-          },
-          {
-            create_time: '2019-08-27 19:39:24',
-            step_name: '主管审核',
-            handler_user: 'yinian',
-            handler_result: '同意',
-            opinion: '注意验证'
-          },
-          {
-            create_time: '2019-08-27 19:39:53',
-            step_name: 'DBA审核',
-            handler_user: 'yinian',
-            handler_result: '同意',
-            opinion: 'sql确认'
-          },
-          {
-            create_time: '',
-            step_name: '自助执行',
-            handler_user: '',
-            handler_result: '',
-            opinion: ''
-          }
-        ]
+        dmlorddl: null
       }
     },
     methods: {
@@ -311,13 +213,10 @@
       }
     },
     mounted () {
-      console.log(11111)
-      axios.get(`${util.url}/detail?workid=${this.$route.query.workid}`)
+      axios.get(`${util.url}/detail?workid=${this.$route.query.workid}&status=${this.$route.query.status}&id=${this.$route.query.id}`)
         .then(res => {
-          this.workflow_config = res.data.workflow_info;
-          this.workflow_record = res.data.workflow_record;
-          this.workflow_next = res.data.workflow_next;
-          console.log(this.workflow_next)
+          this.TableDataNew = res.data.data
+          this.dmlorddl = res.data.type
         })
         .catch(error => {
           util.err_notice(error)

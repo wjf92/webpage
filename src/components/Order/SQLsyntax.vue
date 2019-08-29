@@ -34,7 +34,7 @@
                   <Input type="textarea" v-model="formItem.text" placeholder="请输入"></Input>
                 </FormItem>
 
-                <FormItem label="指定审核人:" prop="assigned">
+                <FormItem label="审核流程:" prop="assigned">
                   <Select v-model="formItem.assigned" filterable>
                     <Option v-for="i in this.assigned" :value="i" :key="i">{{i}}</Option>
                   </Select>

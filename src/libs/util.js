@@ -22,9 +22,9 @@ util.notice = function (vl) {
   })
 }
 
-util.url = location.protocol + '//' + document.domain + ':8000/api/v1'
+util.url = location.protocol + '//' + document.domain + ':8080/api/v1'
 
-util.auth = location.protocol + '//' + document.domain + ':8000/api-token-auth/'
+util.auth = location.protocol + '//' + document.domain + ':8080/api-token-auth/'
 
 // util.url = location.protocol + '//192.168.200.206' + ':8000/api/v1'
 //
@@ -65,13 +65,13 @@ util.showThisRoute = function (itAccess, currentAccess) {
 util.openPage = function (vm, name, idx) {
   if (name === 'serach-sql') {
     vm.$router.push({ path: `/view/${name}/${idx}` });
-    vm.$store.commit('Breadcrumbset', `${name}${idx}`)
-    vm.$store.state.currentPageName = `${name}${idx}`
+    vm.$store.commit('Breadcrumbset', `${name}${idx}`);
+    vm.$store.state.currentPageName = `${name}${idx}`;
     util.taglist(vm, name, idx)
   } else {
-    vm.$router.push({name: name})
-    vm.$store.commit('Breadcrumbset', name)
-    vm.$store.state.currentPageName = name
+    vm.$router.push({name: name});
+    vm.$store.commit('Breadcrumbset', name);
+    vm.$store.state.currentPageName = name;
     util.taglist(vm, name)
   }
 }

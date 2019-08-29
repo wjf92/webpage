@@ -115,10 +115,10 @@
       <div slot="footer">
         <Button type="warning" @click.native="test_button()" v-if="auth === 'admin'">检测sql</Button>
         <Button @click="modal2 = false">取消</Button>
+        <Button type="error" @click="out_button()">驳回</Button>
         <template v-if="switch_show">
           <template v-if="multi">
-            <Button type="error" @click="out_button()" :disabled="summit" v-if="auth === 'admin'">驳回</Button>
-            <Button type="error" @click="out_button()" v-else>驳回</Button>
+
             <Button type="success" @click="agreed_button()" :disabled="summit" v-if="auth === 'admin'">同意</Button>
             <Button type="success" @click="put_button()" v-else-if="auth === 'perform'">执行</Button>
           </template>
@@ -206,11 +206,6 @@
           {
             title: '工单说明:',
             key: 'text'
-          },
-          {
-            title: '是否备份',
-            key: 'backup',
-            width: 100
           },
           {
             title: '提交时间:',
@@ -445,6 +440,15 @@
       }
     },
     methods: {
+      order_info: function () {
+        this.$router.push({
+          name: 'orderlist',
+          query: {
+            workid: '',
+            id: ''
+          }
+        })
+      },
       edit_tab: function (index) {
         this.togoing = index
         this.dataId = []
