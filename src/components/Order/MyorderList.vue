@@ -86,6 +86,7 @@
             <Step icon="clock">
               <i-col span="24">
                 <Card>
+                  <!--任务标题-->
                   <Row style="background-color: rgba(236,255,255,0.63); height: 35px;">
                     <i-col span="8">
                       <Icon type="pie-graph"></Icon>
@@ -97,32 +98,69 @@
                     </i-col>
                   </Row>
                   <br>
-                  <Row>
-                    <i-col span="10">
+                  <!--任务处理结果-->
+                  <Row v-show="true">
+                    <i-col span="24">
                       <!--<Icon type="clock" size="50"></Icon>-->
                       <span >处理中……</span>
                     </i-col>
                   </Row>
-                  <Row>
-                    <Radio-group>
-                      <Radio value="同意"></Radio>
-                      <Radio value="驳回"></Radio>
-                      <Radio value="转交">
-                        <i-select  filterable>
-                          <i-option >{{  }}</i-option>
-                        </i-select>
-                      </Radio>
-                    </Radio-group>
-                  </Row>
-                  <Row>
-                    <span>处理意见:</span>
-                    <i-input type="textarea" :rows="4" placeholder="请输入..."></i-input>
-                  </Row>
+                  <br>
                 </Card>
               </i-col>
             </Step>
           </Steps>
         </Row>
+      </Card>
+      <Card>
+        <!--处理-->
+        <Step icon="social-twitter">
+          <Card>
+            <Row style="background-color: rgba(236,255,255,0.63); height: 35px;">
+              <span style="font-weight:bold">审批意见：</span>
+            </Row>
+            <Row>
+              <RadioGroup size="large" style="width:100%" v-model="auditresult">
+                  <i-col span="3"  offset="2">
+                    <Radio label="agree">
+                      <Icon type="checkmark"></Icon>
+                      <span style="font-size: medium">同意</span>
+                    </Radio>
+                  </i-col>
+                  <i-col span="3">
+                    <Radio label="disagree">
+                      <Icon type="close"></Icon>
+                      <span style="font-size: medium">驳回</span>
+                    </Radio>
+                  </i-col>
+                  <i-col span="8">
+                    <span @click="getperson()">
+                    <Radio label="otherperson">
+                      <span style="font-size: medium">转交</span>
+                      <i-select v-model="auditother" filterable>
+                        <Option v-for="item in personlist" :value="item" :key="item">{{ item }}</Option>
+                      </i-select>
+                    </Radio>
+                    </span>
+                  </i-col>
+              </RadioGroup>
+            </Row>
+            <Row>
+              <i-col span="2">
+                <span style="font-size: medium">审批建议:{{auditresult}}{{auditadvice}}{{auditother}}</span>
+              </i-col>
+              <i-col span="10">
+                <i-input type="textarea" v-model="auditadvice" :rows="4" placeholder="同意"></i-input>
+              </i-col>
+            </Row>
+            <br>
+            <Row>
+              <i-col span="10" offset="2">
+                <Button type="primary" long @click="submit_audit()">提交</Button>
+              </i-col>
+            </Row>
+          </Card>
+        </Step>
       </Card>
     </Row>
     <BackTop :height="100" :bottom="200">
@@ -219,6 +257,10 @@
     name: 'myorder-list',
     data () {
       return {
+        auditresult: '',
+        auditadvice: '',
+        auditother: '',
+        personlist: ['www', 'jjj', 'fff'],
         ordersql: [],
         dataId: [],
         formdetail: {},
@@ -303,6 +345,40 @@
       }
     },
     methods: {
+      getperson () {
+        axios.put(`${util.url}/audit_sql`, {
+          'type': 'getpersonall'
+        })
+          .then(res => {
+           this.personlist = res.data
+          })
+          .catch(error => {
+            util.err_notice(error)
+          })
+      },
+      submit_audit () {
+        if (this.auditresult == null || this.auditresult.length === 0) {
+          util.err_notice('请选择审批结果!');
+        } else if (this.auditresult === 'otherperson' && (this.auditother == null || this.auditother.length === 0)) {
+          util.err_notice('转交人不能为空!');
+        } else if (this.auditadvice == null || this.auditadvice.length === 0) {
+          util.err_notice('审批意见不能为空！')
+        } else {
+          axios.put(`${util.url}/audit_sql`, {
+            'type': 'auditorder',
+            'workid': this.$route.query.workid,
+            'auditresult': this.auditresult,
+            'auditother': this.auditother,
+            'auditadvice': this.auditadvice
+          })
+            .then(res => {
+              this.personlist = res.data
+            })
+            .catch(error => {
+              util.err_notice(error)
+            })
+        }
+      },
       // 测试sql按钮
       test_button () {
         this.osclist = []
