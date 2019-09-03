@@ -367,7 +367,7 @@
           axios.put(`${util.url}/audit_sql`, {
             'type': 'auditorder',
             'workid': this.$route.query.workid,
-            'auditresult': this.auditresult,
+            'auditresult': this.auditresult,  // agree, disagree, otherpersion
             'auditother': this.auditother,
             'auditadvice': this.auditadvice
           })
